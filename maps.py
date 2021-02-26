@@ -3,6 +3,8 @@
 """
 Created on Thu Feb 25 13:39:08 2021
 
+Create South America map and Southern Brazil mini map with surface ellvation
+
 @author: danilocoutodsouza
 """
 
@@ -21,49 +23,17 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap
 
 import cartopy.crs as ccrs
-from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE
-from cartopy.feature import BORDERS, RIVERS
+from cartopy.feature import NaturalEarthFeature, COASTLINE
+from cartopy.feature import BORDERS
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
 # ------------------
-def make_figure():
-    '''
-    Make the final figure 
-    '''
-    proj = ccrs.PlateCarree()
-    fig = plt.figure(figsize=(9.5,5) , constrained_layout=False)
-    gs = gridspec.GridSpec(1, 2, hspace=0, wspace=0,
-                           left=0.05, right=0.99,
-                           width_ratios=[.7, 1])
-    # South America map
-    ax1 = (fig.add_subplot(gs[0], projection=proj))
-    lims = [-82, -25, -60, 15]
-    ax1.set_extent([-82, -25, -57, 13]) 
-    map_features(ax1)
-    topograpgy(fig,ax1,lims)
-    for state in ['PR','SC','RS']:
-        ax1 = highlight_state(ax1,state)
-    # Southern Brazil map
-    ax2 = (fig.add_subplot(gs[1], projection=proj))
-    lims = [-54, -45, -34, -26]
-    ax2.set_extent(lims)
-    topograpgy(fig,ax2,lims)
-    # cosmedics
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    axs = [ax1,ax2]
-    for ax, label in zip(axs,['A','B']):
-        grid_labels_params(ax)
-        Brazil_states(ax)
-        ax.text(0.85,0.85, label, fontsize = 18, transform=ax.transAxes, bbox=props)
-        
-    pl.savefig('map.png', format='png')
-    pl.savefig('map.tiff', format='tiff', dpi=300)
-    
 def map_features(ax):
     ax.add_feature(COASTLINE)
     ax.add_feature(BORDERS, edgecolor='gray')
     return ax
-    
+ 
+# ------------------   
 def grid_labels_params(ax):
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                       linewidth=1, color='gray', alpha=0.5,linestyle='--')
@@ -76,6 +46,8 @@ def grid_labels_params(ax):
     gl.yformatter = LATITUDE_FORMATTER
     return ax
 
+
+# ------------------
 def Brazil_states(ax):    
     states = NaturalEarthFeature(category='cultural', scale='50m', facecolor='none',
                                   name='admin_1_states_provinces_lines')
@@ -85,11 +57,12 @@ def Brazil_states(ax):
                                   name='populated_places')
     _ = ax.add_feature(cities)
     
+# ------------------    
 def highlight_state(ax,state_acronym):
     lon = []
     lat = []
     # get lon from csv
-    with open(str(state_acronym)+'.ll') as csv_file:
+    with open('../'+str(state_acronym)+'.ll') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -99,12 +72,26 @@ def highlight_state(ax,state_acronym):
     ax.fill(lon,lat, color='coral', alpha=0.4, transform=ccrs.PlateCarree())  
     return ax
 
+# ------------------
+def draw_box(ax,proj,box_west,box_east,box_top,box_bot):
+    # make lines
+    xtop,ytop = np.linspace(box_east,box_west),np.linspace(box_top,box_top)
+    xbot,ybot = np.linspace(box_east,box_west),np.linspace(box_bot,box_bot)
+    xleft,yleft = np.linspace(box_west,box_west),np.linspace(box_bot,box_top)
+    xright,yright = np.linspace(box_east,box_east),np.linspace(box_bot,box_top)        
+    # plot lines
+    ax.plot(xtop,ytop , 'r-', transform=proj)
+    ax.plot(xbot,ybot , 'r-', transform=proj) 
+    ax.plot(xright,yright , 'r-', transform=proj) 
+    ax.plot(xleft,yleft , 'r-', transform=proj)
+    return ax
+
 def cmap_topo():
     topo_cm = cm.get_cmap(cmo.topo, 512)
     newcmp = ListedColormap(topo_cm(np.linspace(0.2, 1, 256)))
     return newcmp
 
-
+# ------------------
 def topograpgy(fig,ax,lims):
     # open topo file
     topo = xr.open_dataset('/Users/danilocoutodsouza/Documents/UFSC/Mestrado/ROAD/Weather_types/Data/ETOPO1_Bed_c_gmt4.grd')
@@ -131,6 +118,7 @@ def topograpgy(fig,ax,lims):
     cbar_ax.tick_params(axis='both', colors=c)
     return ax
 
+# ------------------
 def surf():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -152,9 +140,42 @@ class MidpointNormalize(colors.Normalize):
         x, y = [self.vmin, self.vcenter, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y))
     
+# ------------------
+def main():
+    '''
+    Make the final figure 
+    '''
+    proj = ccrs.PlateCarree()
+    fig = plt.figure(figsize=(9.5,5) , constrained_layout=False)
+    gs = gridspec.GridSpec(1, 2, hspace=0, wspace=0,
+                           left=0.05, right=0.99,
+                           width_ratios=[.7, 1])
+    # South America map
+    ax1 = (fig.add_subplot(gs[0], projection=proj))
+    lims = [-82, -25, -60, 15]
+    ax1.set_extent([-82, -25, -57, 13]) 
+    map_features(ax1)
+    topograpgy(fig,ax1,lims)
+    for state in ['PR','SC','RS']:
+        ax1 = highlight_state(ax1,state)
+    draw_box(ax1,proj,-54, -45, -34, -26)
+    # Southern Brazil map
+    ax2 = (fig.add_subplot(gs[1], projection=proj))
+    lims = [-54, -45, -34, -26]
+    ax2.set_extent(lims)
+    topograpgy(fig,ax2,lims)
+    # cosmedics
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    axs = [ax1,ax2]
+    for ax, label in zip(axs,['A','B']):
+        grid_labels_params(ax)
+        Brazil_states(ax)
+        ax.text(0.85,0.85, label, fontsize = 18, transform=ax.transAxes, bbox=props)
+        
+    pl.savefig('../Figures/map.png', format='png')
+    pl.savefig('../Figures/map.tiff', format='tiff', dpi=300)
 
-
-
+# ------------------
 if __name__ == "__main__": 
-    make_figure()
+    main()
     
