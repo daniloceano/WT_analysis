@@ -3,6 +3,12 @@
 """
 Created on Tue Mar  2 18:24:57 2021
 
+Script for creating figures used for the methodology scheme in the Paper
+    1) Orthogonal maps of CFS SLPfields
+    2) Demo of K-Means Clusters
+    3) Regional CFSR fields
+    4) OLAM SLP data
+
 @author: danilocoutodsouza
 """
 
