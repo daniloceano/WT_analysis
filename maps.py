@@ -173,7 +173,7 @@ def main():
         ax.text(0.85,0.85, label, fontsize = 18, transform=ax.transAxes, bbox=props)
         
     pl.savefig('../Figures/map.png', format='png')
-    pl.savefig('../Figures/map.tiff', format='tiff', dpi=300)
+    pl.savefig('../Figures/map.tiff', format='tiff', dpi=600)
 
 # ------------------
 if __name__ == "__main__": 
