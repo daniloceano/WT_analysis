@@ -16,13 +16,12 @@ It will also calculate the occurence prob. of the WTs in respect to:
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import pylab as pl
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.gridspec as gridspec
-import cmocean.cm as cmo
-import cmocean
+import matplotlib.ticker as mticker
+from matplotlib.ticker import (MultipleLocator, FixedLocator)
+
 
 
 def get_data():
@@ -328,9 +327,27 @@ def plot_sam_prob(data,phase,ax):
     ax.get_yaxis().set_visible(False)
     annotate_wts(ax)   
     
+# Plot time series of probability
+#   1) 5-year smoothed 
+#   2) All probs
+
+def smooth_ts(ts):
+    means = []
+    for i in range(0,len(ts)+1,5):
+        means.append(np.mean(ts[i:i+5]))
+    return means
+    
 def plot_ts(data,wt,ax):
+    years = np.arange(1979,2011)
     ts = make_annual_ts(data,wt)
-    ax.plot(ts, linewidth=3)
+    ax.plot(years,ts, linewidth=2,linestyle=(0, (5, 1)))
+    smoothed = smooth_ts(ts)
+    ax.plot(years[::5],smoothed, linewidth=2, color='k',alpha=0.9)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    ax.xaxis.set_major_locator(FixedLocator(years[1::10]))
+    ax.xaxis.set_minor_locator(MultipleLocator(5))
+    plt.xticks(rotation=90)
 
 
 # ---------------
@@ -338,12 +355,12 @@ def plot_ts(data,wt,ax):
 def main(data):
     # data = get_data()
     fig = plt.figure(figsize=(19.5,12) , constrained_layout=False)
-    gs0 = gridspec.GridSpec(1, 2, wspace=0.05,hspace=0)
+    gs0 = gridspec.GridSpec(1, 2, wspace=0.07,hspace=0)
     gs00 = gridspec.GridSpecFromSubplotSpec(5, 4, subplot_spec=gs0[0],
                                             wspace=0,hspace=0.2)
     gs01 = gridspec.GridSpecFromSubplotSpec(6, 6, subplot_spec=gs0[1],
-                                            wspace=0,hspace=0)
-    
+                                            wspace=0.05,hspace=0.05)
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     # === Plot probabilities ===
     axs00 = []
     
@@ -351,14 +368,14 @@ def main(data):
     axs00.append(plt.subplot(gs00[0, :4]))
     ax = axs00[-1]
     plot_annual_prob(data,ax,fig)
-    ax.text(0.4,1.05, 'Annual', fontsize = 16, transform=ax.transAxes)
+    ax.text(0.45,1.07, 'Annual', fontsize = 16, transform=ax.transAxes)
     
     # Seasons
     for col,season in zip(range(4),['DJF','MAM','JJA','SON']):
         axs00.append(plt.subplot(gs00[1, col]))
         ax = axs00[-1]
         plot_season_prob(data,season,ax)
-        ax.text(0.3,1.05, season, fontsize = 16, transform=ax.transAxes)
+        ax.text(0.35,1.05, season, fontsize = 16, transform=ax.transAxes)
         
     # MJO
     phase = 1
@@ -381,7 +398,7 @@ def main(data):
         
     # SAM
     titles = ['SAM > 2', 'SAM < -2']
-    for col, phase in zip(range(2,4),['Pos','Neg']):
+    for col, phase, title in zip(range(2,4),['Pos','Neg'], titles):
         axs00.append(plt.subplot(gs00[4, col]))
         ax = axs00[-1]
         plot_sam_prob(data,phase,ax)
@@ -393,7 +410,17 @@ def main(data):
         axs01.append(plt.subplot(gs01[wt-1]))
         ax = axs01[-1]
         plot_ts(data,wt,ax)
-        
+        ax.set_ylim(0,10)
+        ax.text(0.1,0.8, str(wt), fontsize = 16, transform=ax.transAxes, bbox=props)
+        plt.grid(linewidth=0.5,color='gray')
+        if wt not in ([1,7,13,19,25,31]):
+            ax.set_yticks(range(0,9,2))
+            ax.set_yticklabels([])
+        else:
+            ax.set_yticks([0,2,4,6,8])
+        if wt < 31:
+            ax.set_xticklabels([])
+                
     pl.savefig('../Figures/probabilities/panel.png', format='png')
     pl.savefig('../Figures/probabilities/panel.tiff', format='tiff', dpi=600)
         
