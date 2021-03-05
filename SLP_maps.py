@@ -106,8 +106,12 @@ def get_OLAM_data(WT):
                                'Mestrado/ROAD/Weather_types/Data/'+
                                'OLAM_netcdf_36WT/alltimes/'+
                                'OLAM_WT'+file+'_full_vwnd.nc')
+    prec_data = xr.open_dataset('/Users/danilocoutodsouza/Documents/UFSC/'+
+                               'Mestrado/ROAD/Weather_types/Data/'+
+                               'OLAM_netcdf_36WT/snapshot/'+
+                               'OLAM_WT'+file+'_accprecip.nc')
     # merge data
-    data = slp_data.assign(uwnd_data).assign(vwnd_data)
+    data = slp_data.assign(uwnd_data).assign(vwnd_data).assign(prec_data)
     # slice to get only the choosen day
     data = data.sel(time=date)
     return data

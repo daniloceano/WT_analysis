@@ -30,7 +30,7 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 # ------------------
 def map_features(ax):
     ax.add_feature(COASTLINE)
-    ax.add_feature(BORDERS, edgecolor='gray')
+    ax.add_feature(BORDERS, edgecolor='white')
     return ax
  
 # ------------------   
@@ -51,7 +51,7 @@ def grid_labels_params(ax):
 def Brazil_states(ax):    
     states = NaturalEarthFeature(category='cultural', scale='50m', facecolor='none',
                                   name='admin_1_states_provinces_lines')
-    _ = ax.add_feature(states, edgecolor='gray')
+    _ = ax.add_feature(states, edgecolor='white')
     
     cities = NaturalEarthFeature(category='cultural', scale='50m', facecolor='none',
                                   name='populated_places')
@@ -150,26 +150,30 @@ def main():
     gs = gridspec.GridSpec(1, 2, hspace=0, wspace=0,
                            left=0.05, right=0.99,
                            width_ratios=[.7, 1])
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.7)
+    props2 = dict(boxstyle='square', facecolor='white', alpha=0.7)
     # South America map
     ax1 = (fig.add_subplot(gs[0], projection=proj))
     lims = [-82, -25, -60, 15]
     ax1.set_extent([-82, -25, -57, 13]) 
-    map_features(ax1)
     topograpgy(fig,ax1,lims)
     for state in ['PR','SC','RS']:
         ax1 = highlight_state(ax1,state)
     draw_box(ax1,proj,-54, -45, -34, -26)
     # Southern Brazil map
     ax2 = (fig.add_subplot(gs[1], projection=proj))
-    lims = [-54, -45, -34, -26]
+    lims = [-54, -45, -34, -26+1]
     ax2.set_extent(lims)
     topograpgy(fig,ax2,lims)
+    ax2.text(-50.7,-25.8, 'PR', fontsize = 16, bbox=props2)
+    ax2.text(-51.7,-27.2, 'SC', fontsize = 16, bbox=props2)
+    ax2.text(-52.7,-29.4, 'RS', fontsize = 16, bbox=props2)
     # cosmedics
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     axs = [ax1,ax2]
     for ax, label in zip(axs,['A','B']):
         grid_labels_params(ax)
         Brazil_states(ax)
+        map_features(ax)
         ax.text(0.85,0.85, label, fontsize = 18, transform=ax.transAxes, bbox=props)
         
     pl.savefig('../Figures/map.png', format='png')
