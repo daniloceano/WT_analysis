@@ -145,11 +145,12 @@ def plot_SLP(ax,WT,proj,time,source):
     min_ = round(int(np.amin(slp).values))
     max_ = round(int(np.amax(slp).values))
     norm = maps.MidpointNormalize(vmin=min_, vcenter=1014, vmax=max_)
-    ax.pcolormesh(lon, lat, slp[time], cmap=cmo.balance,
+    cs = ax.pcolormesh(lon, lat, slp[time], cmap=cmo.balance,
                 norm=norm, shading='nearest', transform=proj)
     ax.quiver(lon[::skip], lat[::skip],
               u[time][::skip,::skip], v[time][::skip,::skip],
-              transform=proj)    
+              transform=proj)
+    return cs
     
  
 # ------------------
@@ -253,23 +254,29 @@ def make_gif(source):
     elif source == 'olam':
         times = 8
     for t in range(times):
-        for WT in range(1,37):
-            axs.append(fig.add_subplot(gs[WT-1], projection=proj))
-            ax = axs[-1]
-            ax.set_extent(lims) 
-            # # Plot SLP and wind
-            plot_SLP(ax,WT,proj,t,source)
-            # Draw boxes for analysis
-            if source == 'cfsr':
-                draw_box(ax,proj,-70, 0, -62, -25, 'k-',2)
-                draw_box(ax,proj,-69, -34, -43, -26, 'k--',1)
-                draw_box(ax,proj,-69, -34, -61, -44, 'k--',1)
-                draw_box(ax,proj,-33, -1, -43, -26, 'k--',1)
-                draw_box(ax,proj,-33, -1,  -61, -44, 'k--',1)
-            # Cosmedics
-            maps.map_features(ax)
-            ax.text(0.05,0.8,str(WT), transform=ax.transAxes, fontsize=16,bbox=props)
-            # snap animation
+        WT= 1
+        for col in range(6):
+            for row in range(6):
+                axs.append(fig.add_subplot(gs[row, col], projection=proj))
+                ax = axs[-1]
+                ax.set_extent(lims) 
+                # # Plot SLP and wind
+                cs = plot_SLP(ax,WT,proj,t,source)
+                # Draw boxes for analysis
+                if source == 'cfsr':
+                    draw_box(ax,proj,-70, 0, -62, -25, 'k-',2)
+                    draw_box(ax,proj,-69, -34, -43, -26, 'k--',1)
+                    draw_box(ax,proj,-69, -34, -61, -44, 'k--',1)
+                    draw_box(ax,proj,-33, -1, -43, -26, 'k--',1)
+                    draw_box(ax,proj,-33, -1,  -61, -44, 'k--',1)
+                # Cosmedics
+                maps.map_features(ax)
+                ax.text(0.05,0.8,str(WT), transform=ax.transAxes, fontsize=16,bbox=props)
+                # snap animation
+                WT += 1
+                if WT == 36:
+                    cbar_ax = fig.add_axes([0.17, 0.05, 0.65, 0.02])
+                    fig.colorbar(cs, cax=cbar_ax, orientation="horizontal")
         camera.snap()
     animation = camera.animate(interval = 200, repeat = True,
                             repeat_delay = 500)
@@ -288,10 +295,10 @@ def main():
     # Make gif for supplementary material
     make_gif('cfsr')
     make_gif('olam')
-    # Make figures for better visualization
-    for wt in range(1,37):
-        make_map_CFSR(wt,lims_cfsr)
-        make_map_OLAM(wt,lims_olam)              
+    # # Make figures for better visualization
+    # for wt in range(1,37):
+    #     make_map_CFSR(wt,lims_cfsr)
+    #     make_map_OLAM(wt,lims_olam)              
     
 # ---------------
 if __name__ == "__main__": 

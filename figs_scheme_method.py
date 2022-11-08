@@ -115,7 +115,8 @@ def globes():
         # if wt == 1:
         #     ax.text(0,.8,'A', transform=ax.transAxes, fontsize=18,bbox=props)
             
-    pl.savefig('../Figures/scheme_methodology/globes.png', format='png',transparent=True)     
+    pl.savefig('../Figures/scheme_methodology/globes.png', format='png',transparent=True) 
+    pl.savefig('../Figures/scheme_methodology/globes.png', format='tiff',transparent=True)    
     
 def KKM_demo():
     '''

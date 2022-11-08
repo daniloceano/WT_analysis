@@ -17,6 +17,8 @@ import matplotlib.gridspec as gridspec
 import matplotlib.ticker as mticker
 from matplotlib import colors
 from matplotlib.colors import LinearSegmentedColormap
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+
 
 import cartopy.crs as ccrs
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
@@ -63,8 +65,8 @@ def plot_var(ax,WT,proj,var):
     if var == 'slp':
         # set limits for plotting
         cmap = cmo.balance
-        levels = np.arange(1000,1036,2)
-        norm = colors.DivergingNorm(vmin=1000, vcenter=1014, vmax=1035)
+        levels = np.arange(995,1036,2)
+        norm = maps.MidpointNormalize(vmin=995, vcenter=1014, vmax=1036)
         cf1 = ax.contourf(lon, lat, slp, levels=levels, cmap=cmap,
                           norm=norm) 
         ax.contour(lon, lat, slp, cf1.levels,colors='grey', linewidths=1) 
@@ -72,7 +74,7 @@ def plot_var(ax,WT,proj,var):
                        v[::20,::20],color= 'k')
         ax.quiverkey(qv,-0.3, 1.07, 10, r'$10 \frac{m}{s}$', labelpos = 'E',
                            coordinates='axes', labelsep = 0.05,
-                           fontproperties={'size': 14, 'weight': 'bold'})
+                           fontproperties={'size': 12, 'weight': 'bold'})
     if var == 'prec':
         # set limits for plotting
         levels = np.arange(0,301,25)
@@ -90,7 +92,7 @@ def plot_var(ax,WT,proj,var):
                        v[::20,::20],color= 'k')
         ax.quiverkey(qv,-0.3, 1.07, 10, r'$10 \frac{m}{s}$', labelpos = 'E',
                            coordinates='axes', labelsep = 0.05,
-                           fontproperties={'size': 14, 'weight': 'bold'})
+                           fontproperties={'size': 12, 'weight': 'bold'})
     return cf1    
         
 # ------------------   
@@ -100,11 +102,14 @@ def grid_labels_params(ax):
     gl.top_labels = False
     gl.right_labels = False
     gl.ylocator = mticker.FixedLocator(range(-35,-25,2))
-    gl.xlabel_style = {'size': 12, 'color': 'gray'}
-    gl.ylabel_style = {'size': 12, 'color': 'gray', 'rotation' : None}
+    gl.xlocator = mticker.FixedLocator(range(-51,-45,2))
+    gl.xlabel_style = {'size': 10, 'color': 'gray'}
+    gl.ylabel_style = {'size': 10, 'color': 'gray', 'rotation' : None}
     ax.outline_patch.set_edgecolor('gray')
-    gl.xformatter = LONGITUDE_FORMATTER
-    gl.yformatter = LATITUDE_FORMATTER
+    gl.xformatter = LongitudeFormatter(number_format='.0f',
+                                      degree_symbol='')
+    gl.yformatter = LatitudeFormatter(number_format='.0f',
+                                      degree_symbol='')
     return ax
 
 # ---------------    
@@ -112,10 +117,10 @@ def main():
     for var in ['slp','prec','wind']:
         proj = ccrs.PlateCarree() 
         lims = [-54, -44.05, -34, -25.05]
-        fig = pl.figure(constrained_layout=False,figsize=(15,12))
+        fig = pl.figure(constrained_layout=False,figsize=(10,8))
         gs = gridspec.GridSpec(ncols=6, nrows=6, figure=fig,
                              left= 0.05,right= 0.9, top = 0.95, bottom = 0.05,
-                             wspace=0.2, hspace=0.2) 
+                             wspace=0.3, hspace=0.15) 
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         wt = 1
         for col in range(6):
@@ -128,33 +133,33 @@ def main():
                 grid_labels_params(ax)
                 maps.map_features(ax)
                 maps.Brazil_states(ax)
-                ax.text(0.05,0.8,str(wt), transform=ax.transAxes, fontsize=16,bbox=props)
+                ax.text(0.05,0.8,str(wt), transform=ax.transAxes, fontsize=12,bbox=props)
                 wt += 1
         # colorbar
         
         pos = ax.get_position()
-        cbar_ax = fig.add_axes([pos.x1+0.008, pos.y0*4.4, 0.02, pos.height*4])
+        cbar_ax = fig.add_axes([pos.x1+0.01, pos.y0*4.4, 0.02, pos.height*4])
         if var == 'slp':
-            norm = maps.MidpointNormalize(vmin=1000, vcenter=1014, vmax=1035)
+            norm = maps.MidpointNormalize(vmin=995, vcenter=1014, vmax=1036)
             cbar = plt.colorbar(cf1, cax=cbar_ax, orientation='vertical',
                                 norm=norm)
             cbar.ax.tick_params(labelsize=12) 
-            cbar.mappable.set_clim(1000,1035)
-            cbar.ax.set_title('(hPa)', rotation=0, fontsize= 14)
+            cbar.mappable.set_clim(995,1035)
+            cbar.ax.set_title('(hPa)', rotation=0, fontsize= 12)
         elif var == 'prec':
             norm = plt.Normalize(0, 300)
             cbar = plt.colorbar(cf1, cax=cbar_ax,
                                 orientation='vertical', extend='max',
                                 norm=norm)
             cbar.ax.tick_params(labelsize=12) 
-            cbar.ax.set_title('(mm)', rotation=0, fontsize= 14)
+            cbar.ax.set_title('(mm)', rotation=0, fontsize= 12)
         elif var == 'wind':
             norm = plt.Normalize(0, 22)
             cbar = plt.colorbar(cf1, cax=cbar_ax,
                                 orientation='vertical', norm=norm,
                                 extend='max')
             cbar.ax.tick_params(labelsize=12) 
-            cbar.ax.set_title('(m/s)', rotation=0, fontsize= 14)
+            cbar.ax.set_title('(m/s)', rotation=0, fontsize= 12)
             
         pl.savefig('../Figures/panels/'+var+'.png', format='png')
         pl.savefig('../Figures/panels/'+var+'.tiff', format='tiff', dpi=600)

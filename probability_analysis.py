@@ -352,9 +352,9 @@ def plot_ts(data,wt,ax):
 
 # ---------------
 
-def main(data):
-    # data = get_data()
-    fig = plt.figure(figsize=(19.5,12) , constrained_layout=False)
+def main():
+    data = get_data()
+    fig = plt.figure(figsize=(16.25,10) , constrained_layout=False)
     gs0 = gridspec.GridSpec(1, 2, wspace=0.07,hspace=0)
     gs00 = gridspec.GridSpecFromSubplotSpec(5, 4, subplot_spec=gs0[0],
                                             wspace=0,hspace=0.2)
@@ -422,7 +422,7 @@ def main(data):
             ax.set_xticklabels([])
                 
     pl.savefig('../Figures/probabilities/panel.png', format='png')
-    pl.savefig('../Figures/probabilities/panel.tiff', format='tiff', dpi=600)
+    pl.savefig('../Figures/probabilities/panel.tiff', format='tiff', dpi=200)
         
     
 # ------------------
